@@ -1,26 +1,33 @@
-name: CI
+name: Download Decrypted
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'action.yml'
-      - '.github/workflows/build.yml'
 
 jobs:
   build:
     strategy:
       matrix:
-        url:
-          - "https://apps.apple.com/us/app/reddit/id1064216828"
-          - "https://apps.apple.com/us/app/twitch-live-streaming/id460177396"
-        path:
-          - App.ipa
-          - ''
+        include:
+          - url: "https://apps.apple.com/us/app/id544007664"
+            path: 'YouTube.ipa'
+          - url: "https://apps.apple.com/us/app/id284882215"
+            path: 'Facebook.ipa'
+          - url: "https://apps.apple.com/us/app/id454638411"
+            path: 'Messenger.ipa'
+          - url: "https://apps.apple.com/us/app/id835599320"
+            path: 'TikTok.ipa'
+          - url: "https://apps.apple.com/us/app/id389801252"
+            path: 'Instagram.ipa'
+          - url: "https://apps.apple.com/us/app/id324684580"
+            path: 'Spotify.ipa'
+          - url: "https://apps.apple.com/us/app/id1017492454"
+            path: 'YouTube Music.ipa'
+          - url: "https://apps.apple.com/us/app/id1064216828"
+            path: 'Reddit.ipa'
     runs-on: ubuntu-latest
     steps:
       - name: Download IPA
-        uses: level3tjg/decryptedappstore-action@main
+        uses: JohnnyPh/decryptedappstore-action@main
         with:
           appstore_url: "${{ matrix.url }}"
           cache: false
@@ -28,5 +35,13 @@ jobs:
           token: "${{ secrets.SESSION_TOKEN }}"
 
       - name: Check IPA was downloaded
-        if: matrix.path != '' && hashFiles('App.ipa') == ''
-        run: exit 1
+        if: matrix.path != '' && hashFiles(matrix.path) == ''
+        run: |
+          echo "Failed to download ${{ matrix.path }}"
+          exit 1
+      
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.path }}
+          path: ${{ matrix.path }}
